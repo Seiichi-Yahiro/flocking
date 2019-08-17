@@ -13,14 +13,18 @@ extern {
 
 #[wasm_bindgen]
 pub struct BoidPool {
-    boids: Vec<Boid>
+    boids: Vec<Boid>,
+    width: f64,
+    height: f64
 }
 
 #[wasm_bindgen]
 impl BoidPool {
-    pub fn new() -> BoidPool {
+    pub fn new(width: f64, height: f64) -> BoidPool {
         BoidPool {
-            boids: vec![]
+            boids: vec![],
+            width,
+            height
         }
     }
 
@@ -59,10 +63,7 @@ impl BoidPool {
             }
 
             if number_of_neighbors == 0 {
-                new_boids.push(Boid {
-                    velocity: boid.velocity.clone(),
-                    position: boid.position + boid.velocity
-                });
+                new_boids.push(boid.clone().calculate_next_position(self.width, self.height));
                 continue;
             }
 
@@ -71,11 +72,12 @@ impl BoidPool {
             separation_velocity = (separation_velocity / number_of_neighbors as f64 * -1.0).normalise();
 
             let new_velocity = (alignment_velocity + cohesion_velocity + separation_velocity).normalise();
+            let new_boid = boid
+                .clone()
+                .set_velocity(new_velocity)
+                .calculate_next_position(self.width, self.height);
 
-            new_boids.push(Boid {
-                position: boid.position + new_velocity,
-                velocity: new_velocity
-            });
+            new_boids.push(new_boid);
         }
 
         self.boids = new_boids;
