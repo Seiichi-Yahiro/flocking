@@ -72,13 +72,13 @@ impl Boid {
 
         if pos.x < 0.0 {
             pos.x += width;
-        } else if pos.x > width {
+        } else if pos.x >= width {
             pos.x -= width;
         }
 
         if pos.y < 0.0 {
             pos.y += height;
-        } else if pos.y > height {
+        } else if pos.y >= height {
             pos.y -= height;
         }
 
