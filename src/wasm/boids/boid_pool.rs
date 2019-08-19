@@ -15,7 +15,8 @@ extern {
 pub struct BoidPool {
     boids: Vec<Boid>,
     width: f64,
-    height: f64
+    height: f64,
+    mouse_pos: Vector2D<f64>
 }
 
 #[wasm_bindgen]
@@ -24,18 +25,28 @@ impl BoidPool {
         BoidPool {
             boids: vec![],
             width,
-            height
+            height,
+            mouse_pos: Vector2D::new(width / 2.0, height / 2.0)
         }
     }
 
     pub fn add_boid(&mut self, x: f64, y: f64) {
-        self.boids.push(Boid {
-            position: Vector2D::new(x, y),
-            velocity: Vector2D::new(0.0, 0.0)
-        });
+        self.boids.push(Boid::new(Vector2D::new(x, y)));
+    }
+
+    pub fn set_mouse_pos(&mut self, x: f64, y: f64) {
+        self.mouse_pos = Vector2D::new(x, y);
     }
 
     pub fn update(&mut self) {
+        for boid in &mut self.boids {
+            //boid.seek(&self.mouse_pos);
+            boid.wander();
+            boid.update(self.width, self.height);
+        }
+    }
+
+    /*pub fn update(&mut self) {
         let mut new_boids: Vec<Boid> = vec![];
 
         for boid in &self.boids {
@@ -81,7 +92,7 @@ impl BoidPool {
         }
 
         self.boids = new_boids;
-    }
+    }*/
 
     pub fn render(&self) {
         unsafe {
