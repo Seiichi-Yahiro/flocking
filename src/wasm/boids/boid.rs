@@ -60,26 +60,26 @@ impl Boid {
         self.wander_vector = new_wander_vector.normalise();
     }
 
-    pub fn update(&mut self, width: f64, height: f64) {
+    pub fn update(&mut self, width: &f64, height: &f64) {
         let velocity = self.velocity + self.steering.limit(MAX_FORCE) / WEIGHT;
         self.velocity = velocity.limit(MAX_VELOCITY);
         self.calculate_next_position(width, height);
         self.steering = Vector2D::new(0.0, 0.0);
     }
 
-    fn calculate_next_position(&mut self, width: f64, height: f64) {
+    fn calculate_next_position(&mut self, width: &f64, height: &f64) {
         let mut pos = self.position + self.velocity;
 
         if pos.x < 0.0 {
-            pos.x += width;
-        } else if pos.x >= width {
-            pos.x -= width;
+            pos.x += *width;
+        } else if pos.x >= *width {
+            pos.x -= *width;
         }
 
         if pos.y < 0.0 {
-            pos.y += height;
-        } else if pos.y >= height {
-            pos.y -= height;
+            pos.y += *height;
+        } else if pos.y >= *height {
+            pos.y -= *height;
         }
 
         self.position = pos;

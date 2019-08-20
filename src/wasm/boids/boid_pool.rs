@@ -11,22 +11,14 @@ extern {
     fn draw_boid(x: f64, y: f64, angle: f64);
 }
 
-#[wasm_bindgen]
 pub struct BoidPool {
     boids: Vec<Boid>,
-    width: f64,
-    height: f64,
-    mouse_pos: Vector2D<f64>
 }
 
-#[wasm_bindgen]
 impl BoidPool {
-    pub fn new(width: f64, height: f64) -> BoidPool {
+    pub fn new() -> BoidPool {
         BoidPool {
-            boids: vec![],
-            width,
-            height,
-            mouse_pos: Vector2D::new(width / 2.0, height / 2.0)
+            boids: vec![]
         }
     }
 
@@ -34,15 +26,11 @@ impl BoidPool {
         self.boids.push(Boid::new(Vector2D::new(x, y)));
     }
 
-    pub fn set_mouse_pos(&mut self, x: f64, y: f64) {
-        self.mouse_pos = Vector2D::new(x, y);
-    }
-
-    pub fn update(&mut self) {
+    pub fn update(&mut self, width: &f64, height: &f64) {
         for boid in &mut self.boids {
             //boid.seek(&self.mouse_pos);
             boid.wander();
-            boid.update(self.width, self.height);
+            boid.update(width, height);
         }
     }
 

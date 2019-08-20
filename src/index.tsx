@@ -1,26 +1,26 @@
 window.addEventListener('load', function load() {
     window.removeEventListener('load', load);
 
-    import('../wasm_build').then(({ BoidPool }) => {
+    import('../wasm_build/index').then(({ App }) => {
         const canvas = document.getElementById('canvas')! as HTMLCanvasElement;
         const { width, height } = canvas.getBoundingClientRect();
 
-        const boidPool = BoidPool.new(width, height);
-        boidPool.add_boid(100, 100);
-        boidPool.add_boid(250, 250);
+        const app = App.new(width, height);
+        app.add_boid(100, 100);
+        app.add_boid(250, 250);
 
         window.addEventListener('beforeunload', () => {
-            boidPool.free();
+            app.free();
         });
 
         canvas.addEventListener('mousemove', ({ clientX, clientY }: MouseEvent) => {
             const { left, top } = canvas.getBoundingClientRect();
-            boidPool.set_mouse_pos(clientX - left, clientY - top);
+            app.set_mouse_pos(clientX - left, clientY - top);
         });
 
         const renderLoop = () => {
-            boidPool.update();
-            boidPool.render();
+            app.update();
+            app.render();
             requestAnimationFrame(renderLoop);
         };
 
