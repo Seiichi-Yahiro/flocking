@@ -9,7 +9,7 @@ use vector2d::Vector2D;
 use boids::boid_pool::BoidPool;
 
 #[wasm_bindgen]
-struct App {
+pub struct App {
     width: f64,
     height: f64,
     mouse_pos: Vector2D<f64>,
@@ -37,7 +37,7 @@ impl App {
     }
 
     pub fn update(&mut self) {
-        self.boid_pool.update(&self.width, &self.height);
+        self.boid_pool.update(&self.width, &self.height, &self.mouse_pos);
     }
 
     pub fn render(&self) {

@@ -6,8 +6,9 @@ window.addEventListener('load', function load() {
         const { width, height } = canvas.getBoundingClientRect();
 
         const app = App.new(width, height);
-        app.add_boid(100, 100);
-        app.add_boid(250, 250);
+        for (let i = 0; i < 100; i++) {
+            app.add_boid(Math.random() * width, Math.random() * height);
+        }
 
         window.addEventListener('beforeunload', () => {
             app.free();

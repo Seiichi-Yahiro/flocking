@@ -4,16 +4,17 @@ use vector2d::Vector2D;
 use crate::utils::vector2d::Vector2DExt;
 use wasm_bindgen::__rt::core::f64::consts::PI;
 
-const MAX_FORCE: f64 = 1.0;
-const MAX_VELOCITY: f64 = 3.0;
-const VIEW_RADIUS: f64 = 40.0;
-const WEIGHT: f64 = 10.0;
+pub const MAX_FORCE: f64 = 1.0;
+pub const MAX_VELOCITY: f64 = 3.0;
+pub const VIEW_RADIUS: f64 = 40.0;
+pub const WEIGHT: f64 = 10.0;
 
 const WANDER_CHANGEABLE_ANGLE: f64 = PI / 2.0;
 const WANDER_HALF_CHANGEABLE_ANGLE: f64 = WANDER_CHANGEABLE_ANGLE / 2.0;
 const WANDER_CIRCLE_DISTANCE: f64 = 2.0;
 const WANDER_CIRCLE_RADIUS: f64 = 7.0;
 
+#[derive(Clone)]
 pub struct Boid {
     pub position: Vector2D<f64>,
     pub velocity: Vector2D<f64>,
@@ -25,7 +26,7 @@ impl Boid {
     pub fn new(position: Vector2D<f64>) -> Boid {
         Boid {
             position,
-            velocity: Vector2D::new(rand::random::<f64>(), rand::random::<f64>()).normalise() * MAX_VELOCITY,
+            velocity: Vector2D::new(rand::random::<f64>() * 10.0 - 5.0, rand::random::<f64>() * 10.0 - 5.0).normalise() * MAX_VELOCITY,
             steering: Vector2D::new(0.0, 0.0),
             wander_vector: Vector2D::new(0.0, 0.0)
         }
@@ -41,7 +42,7 @@ impl Boid {
             desired_velocity *= distance / VIEW_RADIUS;
         }
 
-        self.steering += desired_velocity - self.velocity;
+        self.steering += (desired_velocity - self.velocity).limit(MAX_FORCE);
     }
 
     pub fn wander(&mut self) {
@@ -52,6 +53,52 @@ impl Boid {
 
         self.steering += new_wander_vector.limit(MAX_FORCE);
         self.wander_vector = new_wander_vector.normalise();
+    }
+
+    pub fn align(&mut self, boids: &Vec<Boid>)  {
+        let mut steering = Vector2D::new(0.0, 0.0);
+
+        for boid in boids {
+            steering += boid.velocity;
+        }
+
+        if boids.len() > 0 {
+            steering /= boids.len() as f64;
+            steering = steering.normalise() * MAX_VELOCITY;
+            self.steering += steering - self.velocity;
+        }
+    }
+
+    pub fn cohesion(&mut self, boids: &Vec<Boid>) {
+        let mut steering = Vector2D::new(0.0, 0.0);
+
+        for boid in boids {
+            steering += boid.position;
+        }
+
+        if boids.len() > 0 {
+            steering /= boids.len() as f64;
+            steering = (steering - self.position).normalise() * MAX_VELOCITY;
+            steering -= self.velocity;
+            steering = steering.limit(MAX_FORCE);
+            self.steering += steering;
+        }
+    }
+
+    pub fn separation(&mut self, boids: &Vec<Boid>) {
+        let mut steering = Vector2D::new(0.0, 0.0);
+
+        for boid in boids {
+            steering += (self.position - boid.position).normalise();
+        }
+
+        if boids.len() > 0 {
+            steering /= boids.len() as f64;
+            steering = steering.normalise() * MAX_VELOCITY;
+            steering -= self.velocity;
+            steering = steering.limit(MAX_FORCE);
+            self.steering += steering;
+        }
     }
 
     pub fn update(&mut self, width: &f64, height: &f64) {
