@@ -46,15 +46,9 @@ impl Boid {
 
     pub fn wander(&mut self) {
         let circle_center = self.velocity.normalise() * WANDER_CIRCLE_DISTANCE;
-
         let angle: f64 = WANDER_CHANGEABLE_ANGLE * rand::random::<f64>() - WANDER_HALF_CHANGEABLE_ANGLE;
-        let angle_cos = angle.cos();
-        let angle_sin = angle.sin();
-
-        let x = self.wander_vector.x * angle_cos - self.wander_vector.y * angle_sin;
-        let y = self.wander_vector.x * angle_sin + self.wander_vector.y * angle_cos;
-
-        let new_wander_vector = circle_center + Vector2D::new(x, y) * WANDER_CIRCLE_RADIUS;
+        let circle = self.wander_vector.rotate(angle) * WANDER_CIRCLE_RADIUS;
+        let new_wander_vector = circle_center + circle;
 
         self.steering += new_wander_vector.limit(MAX_FORCE);
         self.wander_vector = new_wander_vector.normalise();
