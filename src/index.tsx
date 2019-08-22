@@ -6,7 +6,7 @@ window.addEventListener('load', function load() {
         const { width, height } = canvas.getBoundingClientRect();
 
         const app = App.new(width, height);
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < 0; i++) {
             app.add_boid(Math.random() * width, Math.random() * height);
         }
 
@@ -17,6 +17,11 @@ window.addEventListener('load', function load() {
         canvas.addEventListener('mousemove', ({ clientX, clientY }: MouseEvent) => {
             const { left, top } = canvas.getBoundingClientRect();
             app.set_mouse_pos(clientX - left, clientY - top);
+        });
+
+        canvas.addEventListener('click', ({ clientX, clientY }) => {
+            const { left, top } = canvas.getBoundingClientRect();
+            app.add_boid(clientX - left, clientY - top);
         });
 
         const renderLoop = () => {
