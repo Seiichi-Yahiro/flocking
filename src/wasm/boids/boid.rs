@@ -1,16 +1,6 @@
 use vector2d::Vector2D;
 use crate::utils::vector2d::Vector2DExt;
-use wasm_bindgen::__rt::core::f64::consts::PI;
-
-pub const MAX_FORCE: f64 = 1.0;
-pub const MAX_VELOCITY: f64 = 3.0;
-pub const VIEW_RADIUS: f64 = 20.0;
-pub const WEIGHT: f64 = 10.0;
-
-const WANDER_CHANGEABLE_ANGLE: f64 = PI / 2.0;
-const WANDER_HALF_CHANGEABLE_ANGLE: f64 = WANDER_CHANGEABLE_ANGLE / 2.0;
-const WANDER_CIRCLE_DISTANCE: f64 = 2.0;
-const WANDER_CIRCLE_RADIUS: f64 = 7.0;
+use crate::settings::SETTINGS;
 
 #[derive(Clone)]
 pub struct Boid {
@@ -22,35 +12,41 @@ pub struct Boid {
 
 impl Boid {
     pub fn new(position: Vector2D<f64>) -> Boid {
-        Boid {
-            position,
-            velocity: Vector2D::new(rand::random::<f64>() * 10.0 - 5.0, rand::random::<f64>() * 10.0 - 5.0).normalise() * MAX_VELOCITY,
-            steering: Vector2D::new(0.0, 0.0),
-            wander_vector: Vector2D::new(0.0, 0.0)
-        }
+        SETTINGS.with(|settings| {
+            Boid {
+                position,
+                velocity: Vector2D::new(rand::random::<f64>() * 10.0 - 5.0, rand::random::<f64>() * 10.0 - 5.0).normalise() * settings.borrow().max_velocity,
+                steering: Vector2D::new(0.0, 0.0),
+                wander_vector: Vector2D::new(0.0, 0.0)
+            }
+        })
     }
 
     pub fn seek(&mut self, target: &Vector2D<f64>) {
-        let desired_position = *target - self.position;
-        let distance = desired_position.length();
-        let mut desired_velocity = desired_position.normalise() * MAX_VELOCITY;
+        SETTINGS.with(|settings| {
+            let desired_position = *target - self.position;
+            let distance = desired_position.length();
+            let mut desired_velocity = desired_position.normalise() * settings.borrow().max_velocity;
 
-        // slow down the closer the boid gets
-        if distance <= VIEW_RADIUS {
-            desired_velocity *= distance / VIEW_RADIUS;
-        }
+            // slow down the closer the boid gets
+            if distance <= settings.borrow().view_radius {
+                desired_velocity *= distance / settings.borrow().view_radius;
+            }
 
-        self.steering += (desired_velocity - self.velocity).limit(MAX_FORCE);
+            self.steering += (desired_velocity - self.velocity).limit(settings.borrow().max_force);
+        })
     }
 
     pub fn wander(&mut self) {
-        let circle_center = self.velocity.normalise() * WANDER_CIRCLE_DISTANCE;
-        let angle: f64 = WANDER_CHANGEABLE_ANGLE * rand::random::<f64>() - WANDER_HALF_CHANGEABLE_ANGLE;
-        let circle = self.wander_vector.rotate(angle) * WANDER_CIRCLE_RADIUS;
-        let new_wander_vector = circle_center + circle;
+        SETTINGS.with(|settings| {
+            let circle_center = self.velocity.normalise() * settings.borrow().wander_circle_distance;
+            let angle: f64 = settings.borrow().wander_changeable_angle * rand::random::<f64>() - settings.borrow().wander_changeable_angle / 2.0;
+            let circle = self.wander_vector.rotate(angle) * settings.borrow().wander_circle_radius;
+            let new_wander_vector = circle_center + circle;
 
-        self.steering += new_wander_vector.limit(MAX_FORCE);
-        self.wander_vector = new_wander_vector.normalise();
+            self.steering += new_wander_vector.limit(settings.borrow().max_force);
+            self.wander_vector = new_wander_vector.normalise();
+        })
     }
 
     pub fn align(&mut self, boids: &Vec<&Boid>)  {
@@ -61,9 +57,11 @@ impl Boid {
         }
 
         if boids.len() > 0 {
-            steering /= boids.len() as f64;
-            steering = steering.normalise() * MAX_VELOCITY;
-            self.steering += steering - self.velocity;
+            SETTINGS.with(|settings| {
+                steering /= boids.len() as f64;
+                steering = steering.normalise() * settings.borrow().max_velocity;
+                self.steering += steering - self.velocity;
+            });
         }
     }
 
@@ -75,11 +73,13 @@ impl Boid {
         }
 
         if boids.len() > 0 {
-            steering /= boids.len() as f64;
-            steering = (steering - self.position).normalise() * MAX_VELOCITY;
-            steering -= self.velocity;
-            steering = steering.limit(MAX_FORCE);
-            self.steering += steering;
+            SETTINGS.with(|settings| {
+                steering /= boids.len() as f64;
+                steering = (steering - self.position).normalise() * settings.borrow().max_velocity;
+                steering -= self.velocity;
+                steering = steering.limit(settings.borrow().max_force);
+                self.steering += steering;
+            });
         }
     }
 
@@ -91,35 +91,41 @@ impl Boid {
         }
 
         if boids.len() > 0 {
-            steering /= boids.len() as f64;
-            steering = steering.normalise() * MAX_VELOCITY;
-            steering -= self.velocity;
-            steering = steering.limit(MAX_FORCE);
-            self.steering += steering;
+            SETTINGS.with(|settings| {
+                steering /= boids.len() as f64;
+                steering = steering.normalise() * settings.borrow().max_velocity;
+                steering -= self.velocity;
+                steering = steering.limit(settings.borrow().max_force);
+                self.steering += steering;
+            });
         }
     }
 
-    pub fn update(&mut self, width: &f64, height: &f64) {
-        let velocity = self.velocity + self.steering.limit(MAX_FORCE) / WEIGHT;
-        self.velocity = velocity.limit(MAX_VELOCITY);
-        self.calculate_next_position(width, height);
-        self.steering = Vector2D::new(0.0, 0.0);
+    pub fn update(&mut self) {
+        SETTINGS.with(|settings| {
+            let velocity = self.velocity + self.steering.limit(settings.borrow().max_force) / settings.borrow().weight;
+            self.velocity = velocity.limit(settings.borrow().max_velocity);
+            self.calculate_next_position();
+            self.steering = Vector2D::new(0.0, 0.0);
+        });
     }
 
-    fn calculate_next_position(&mut self, width: &f64, height: &f64) {
+    fn calculate_next_position(&mut self) {
         let mut pos = self.position + self.velocity;
 
-        if pos.x < 0.0 {
-            pos.x += *width;
-        } else if pos.x >= *width {
-            pos.x -= *width;
-        }
+        SETTINGS.with(|settings| {
+            if pos.x < 0.0 {
+                pos.x += settings.borrow().width;
+            } else if pos.x >= settings.borrow().width {
+                pos.x -= settings.borrow().width;
+            }
 
-        if pos.y < 0.0 {
-            pos.y += *height;
-        } else if pos.y >= *height {
-            pos.y -= *height;
-        }
+            if pos.y < 0.0 {
+                pos.y += settings.borrow().height;
+            } else if pos.y >= settings.borrow().height {
+                pos.y -= settings.borrow().height;
+            }
+        });
 
         self.position = pos;
     }

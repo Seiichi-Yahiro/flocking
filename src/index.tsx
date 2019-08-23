@@ -1,18 +1,13 @@
 window.addEventListener('load', function load() {
     window.removeEventListener('load', load);
 
-    import('../wasm_build/index').then(({ App }) => {
+    import('./wasm').then(({ app }) => {
         const canvas = document.getElementById('canvas')! as HTMLCanvasElement;
         const { width, height } = canvas.getBoundingClientRect();
 
-        const app = App.new(width, height);
         for (let i = 0; i < 0; i++) {
             app.add_boid(Math.random() * width, Math.random() * height);
         }
-
-        window.addEventListener('beforeunload', () => {
-            app.free();
-        });
 
         canvas.addEventListener('mousemove', ({ clientX, clientY }: MouseEvent) => {
             const { left, top } = canvas.getBoundingClientRect();

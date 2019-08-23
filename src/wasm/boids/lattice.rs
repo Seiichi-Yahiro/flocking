@@ -1,8 +1,7 @@
-use super::boid::{Boid, VIEW_RADIUS};
+use super::boid::Boid;
 use wasm_bindgen::__rt::std::collections::HashMap;
 use vector2d::Vector2D;
-
-const SQUARED_VIEW_RADIUS: f64 = VIEW_RADIUS * VIEW_RADIUS;
+use crate::settings::SETTINGS;
 
 pub struct Lattice {
     x_cells: i32,
@@ -11,34 +10,37 @@ pub struct Lattice {
 }
 
 impl Lattice {
-    pub fn new(boids: &Vec<Boid>, width: &f64, height: &f64) -> Lattice {
-        let mut lattice: HashMap<i32, Vec<Boid>> = HashMap::new();
-        let x_cells = (*width / VIEW_RADIUS * 2.0).ceil() as i32;
-        let y_cells = (*height / VIEW_RADIUS * 2.0).ceil() as i32;
+    pub fn new(boids: &Vec<Boid>) -> Lattice {
+        SETTINGS.with(|settings| {
+            let mut lattice: HashMap<i32, Vec<Boid>> = HashMap::new();
+            let double_view_radius = settings.borrow().view_radius * 2.0;
+            let x_cells = (settings.borrow().width / double_view_radius).ceil() as i32;
+            let y_cells = (settings.borrow().height / double_view_radius).ceil() as i32;
 
-        boids.iter()
-            .for_each(|boid| {
-                let index = Self::convert_position_to_lattice_index(&boid.position, &x_cells, &y_cells);
+            boids.iter()
+                .for_each(|boid| {
+                    let index = Self::convert_position_to_lattice_index(&boid.position, &x_cells, &y_cells);
 
-                if lattice.contains_key(&index) {
-                    lattice.get_mut(&index).unwrap().push(boid.clone());
-                } else {
-                    lattice.insert(index, vec![boid.clone()]);
-                }
-            });
+                    if lattice.contains_key(&index) {
+                        lattice.get_mut(&index).unwrap().push(boid.clone());
+                    } else {
+                        lattice.insert(index, vec![boid.clone()]);
+                    }
+                });
 
-        Lattice {
-            x_cells,
-            y_cells,
-            boids: lattice
-        }
+            Lattice {
+                x_cells,
+                y_cells,
+                boids: lattice
+            }
+        })
     }
 
     pub fn get_neighbors(&self, boid: &Boid) -> Vec<&Boid> {
         let index = Self::convert_position_to_lattice_index(&boid.position, &self.x_cells, &self.y_cells);
         let neighbor_indexes = self.calculate_neighbor_indexes(&index);
 
-        let filter_by_distance = |b: &&Boid| (b.position - boid.position).length_squared() <= SQUARED_VIEW_RADIUS;
+        let filter_by_distance = |b: &&Boid| (b.position - boid.position).length_squared() <= SETTINGS.with(|settings| settings.borrow().view_radius.powi(2));
 
         let self_cell_boids: Vec<&Boid> = self.boids[&index].iter()
             .filter(|b| boid.position != b.position)

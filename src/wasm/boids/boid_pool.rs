@@ -23,8 +23,8 @@ impl BoidPool {
         self.boids.push(Boid::new(Vector2D::new(x, y)));
     }
 
-    pub fn update(&mut self, width: &f64, height: &f64, mouse_pos: &Vector2D<f64>) {
-        let lattice = Lattice::new(&self.boids, width, height);
+    pub fn update(&mut self) {
+        let lattice = Lattice::new(&self.boids);
 
         for boid in &mut self.boids {
             let close_boids = lattice.get_neighbors(boid);
@@ -34,7 +34,7 @@ impl BoidPool {
             boid.separation(&close_boids);
             boid.wander();
             //boid.seek(mouse_pos);
-            boid.update(width, height);
+            boid.update();
         }
     }
 
