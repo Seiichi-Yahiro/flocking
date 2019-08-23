@@ -1,5 +1,5 @@
-use vector2d::Vector2D;
 use crate::utils::vector2d::Vector2DExt;
+use vector2d::Vector2D;
 use wasm_bindgen::__rt::core::f64::consts::PI;
 
 pub const MAX_FORCE: f64 = 1.0;
@@ -17,16 +17,21 @@ pub struct Boid {
     pub position: Vector2D<f64>,
     pub velocity: Vector2D<f64>,
     steering: Vector2D<f64>,
-    wander_vector: Vector2D<f64>
+    wander_vector: Vector2D<f64>,
 }
 
 impl Boid {
     pub fn new(position: Vector2D<f64>) -> Boid {
         Boid {
             position,
-            velocity: Vector2D::new(rand::random::<f64>() * 10.0 - 5.0, rand::random::<f64>() * 10.0 - 5.0).normalise() * MAX_VELOCITY,
+            velocity: Vector2D::new(
+                rand::random::<f64>() * 10.0 - 5.0,
+                rand::random::<f64>() * 10.0 - 5.0,
+            )
+            .normalise()
+                * MAX_VELOCITY,
             steering: Vector2D::new(0.0, 0.0),
-            wander_vector: Vector2D::new(0.0, 0.0)
+            wander_vector: Vector2D::new(0.0, 0.0),
         }
     }
 
@@ -45,7 +50,8 @@ impl Boid {
 
     pub fn wander(&mut self) {
         let circle_center = self.velocity.normalise() * WANDER_CIRCLE_DISTANCE;
-        let angle: f64 = WANDER_CHANGEABLE_ANGLE * rand::random::<f64>() - WANDER_HALF_CHANGEABLE_ANGLE;
+        let angle: f64 =
+            WANDER_CHANGEABLE_ANGLE * rand::random::<f64>() - WANDER_HALF_CHANGEABLE_ANGLE;
         let circle = self.wander_vector.rotate(angle) * WANDER_CIRCLE_RADIUS;
         let new_wander_vector = circle_center + circle;
 
@@ -53,7 +59,7 @@ impl Boid {
         self.wander_vector = new_wander_vector.normalise();
     }
 
-    pub fn align(&mut self, boids: &Vec<&Boid>)  {
+    pub fn align(&mut self, boids: &Vec<&Boid>) {
         let mut steering = Vector2D::new(0.0, 0.0);
 
         for boid in boids {

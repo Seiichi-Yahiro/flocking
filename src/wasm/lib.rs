@@ -1,20 +1,20 @@
-extern crate wasm_bindgen;
-extern crate vector2d;
 extern crate rand;
+extern crate vector2d;
+extern crate wasm_bindgen;
 
-mod utils;
 mod boids;
+mod utils;
 
-use wasm_bindgen::prelude::*;
-use vector2d::Vector2D;
 use boids::boid_pool::BoidPool;
+use vector2d::Vector2D;
+use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub struct App {
     width: f64,
     height: f64,
     mouse_pos: Vector2D<f64>,
-    boid_pool: BoidPool
+    boid_pool: BoidPool,
 }
 
 #[wasm_bindgen]
@@ -24,7 +24,7 @@ impl App {
             width,
             height,
             mouse_pos: Vector2D::new(width / 2.0, height / 2.0),
-            boid_pool: BoidPool::new()
+            boid_pool: BoidPool::new(),
         }
     }
 
@@ -38,7 +38,8 @@ impl App {
     }
 
     pub fn update(&mut self) {
-        self.boid_pool.update(&self.width, &self.height, &self.mouse_pos);
+        self.boid_pool
+            .update(&self.width, &self.height, &self.mouse_pos);
     }
 
     pub fn render(&self) {

@@ -21,9 +21,6 @@ impl Vector2DExt<f64> for Vector2D<f64> {
         let x = self.x * angle_cos - self.y * angle_sin;
         let y = self.x * angle_sin + self.y * angle_cos;
 
-        Self {
-            x,
-            y
-        }
+        Self { x, y }
     }
 }
