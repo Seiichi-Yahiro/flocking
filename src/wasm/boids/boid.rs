@@ -1,12 +1,10 @@
-extern crate vector2d;
-extern crate rand;
 use vector2d::Vector2D;
 use crate::utils::vector2d::Vector2DExt;
 use wasm_bindgen::__rt::core::f64::consts::PI;
 
 pub const MAX_FORCE: f64 = 1.0;
 pub const MAX_VELOCITY: f64 = 3.0;
-pub const VIEW_RADIUS: f64 = 40.0;
+pub const VIEW_RADIUS: f64 = 20.0;
 pub const WEIGHT: f64 = 10.0;
 
 const WANDER_CHANGEABLE_ANGLE: f64 = PI / 2.0;
@@ -55,7 +53,7 @@ impl Boid {
         self.wander_vector = new_wander_vector.normalise();
     }
 
-    pub fn align(&mut self, boids: &Vec<Boid>)  {
+    pub fn align(&mut self, boids: &Vec<&Boid>)  {
         let mut steering = Vector2D::new(0.0, 0.0);
 
         for boid in boids {
@@ -69,7 +67,7 @@ impl Boid {
         }
     }
 
-    pub fn cohesion(&mut self, boids: &Vec<Boid>) {
+    pub fn cohesion(&mut self, boids: &Vec<&Boid>) {
         let mut steering = Vector2D::new(0.0, 0.0);
 
         for boid in boids {
@@ -85,7 +83,7 @@ impl Boid {
         }
     }
 
-    pub fn separation(&mut self, boids: &Vec<Boid>) {
+    pub fn separation(&mut self, boids: &Vec<&Boid>) {
         let mut steering = Vector2D::new(0.0, 0.0);
 
         for boid in boids {

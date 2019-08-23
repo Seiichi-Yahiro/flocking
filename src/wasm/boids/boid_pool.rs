@@ -1,8 +1,6 @@
-extern crate vector2d;
-
 use vector2d::Vector2D;
-use crate::utils::vector2d::Vector2DExt;
-use super::boid::{Boid, VIEW_RADIUS};
+use super::boid::{Boid};
+use super::lattice::Lattice;
 
 #[link(wasm_import_module = "../src/canvas.js")]
 extern {
@@ -26,15 +24,11 @@ impl BoidPool {
     }
 
     pub fn update(&mut self, width: &f64, height: &f64, mouse_pos: &Vector2D<f64>) {
-        let boids_clone = self.boids.clone();
+        let lattice = Lattice::new(&self.boids, width, height);
 
         for boid in &mut self.boids {
-            let close_boids: Vec<Boid> = boids_clone.clone().into_iter()
-                .filter(|other| {
-                    let distance = (other.position - boid.position).length();
-                    distance <= VIEW_RADIUS && distance != 0.0
-                })
-                .collect();
+            let close_boids = lattice.get_neighbors(boid);
+
             boid.align(&close_boids);
             boid.cohesion(&close_boids);
             boid.separation(&close_boids);

@@ -16,9 +16,7 @@ export function draw_boid(x, y, angle) {
 
     context.beginPath();
 
-    [[10, 0], [-10, -6], [-10, 6]].forEach(([x, y], index) =>
-        index === 0 ? context.moveTo(x, y) : context.lineTo(x, y)
-    );
+    [[5, 0], [-5, -3], [-5, 3]].forEach(([x, y], index) => (index === 0 ? context.moveTo(x, y) : context.lineTo(x, y)));
 
     context.closePath();
     context.stroke();

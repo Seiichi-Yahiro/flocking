@@ -1,5 +1,6 @@
 extern crate wasm_bindgen;
 extern crate vector2d;
+extern crate rand;
 
 mod utils;
 mod boids;

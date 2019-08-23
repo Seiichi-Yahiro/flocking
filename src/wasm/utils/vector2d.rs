@@ -1,5 +1,3 @@
-extern crate vector2d;
-
 use vector2d::Vector2D;
 
 pub trait Vector2DExt<T> {
