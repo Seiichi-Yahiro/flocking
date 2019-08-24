@@ -1,9 +1,9 @@
 const canvas = document.getElementById('canvas');
 const context = canvas.getContext('2d');
 
-canvas.width = Number(canvas.getBoundingClientRect().width) * 2;
-canvas.height = Number(canvas.getBoundingClientRect().height) * 2;
-context.scale(2, 2);
+canvas.width = Number(canvas.getBoundingClientRect().width);
+canvas.height = Number(canvas.getBoundingClientRect().height);
+//context.scale(2, 2);
 
 export function clear_canvas() {
     context.clearRect(0, 0, canvas.width, canvas.height);

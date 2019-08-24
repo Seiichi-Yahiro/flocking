@@ -22,6 +22,16 @@
                 align-items: center;
             }
 
+            .interface {
+                position: absolute;
+                width: 400px;
+            }
+
+            .interface-list-item {
+                display: flex;
+                flex-direction: column;
+            }
+
             #canvas {
                 border: 1px solid black;
                 width: 800px;
@@ -30,11 +40,12 @@
         </style>
     </head>
     <body>
+        <noscript>
+            You need to enable JavaScript to run this app.
+        </noscript>
+        <div id="root"></div>
         <div class="center">
-            <noscript>
-                You need to enable JavaScript to run this app.
-            </noscript>
-            <canvas id="canvas" />
+            <canvas id="canvas"></canvas>
         </div>
     </body>
 </html>
