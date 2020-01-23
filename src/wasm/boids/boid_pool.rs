@@ -2,12 +2,6 @@ use super::boid::Boid;
 use super::lattice::Lattice;
 use vector2d::Vector2D;
 
-#[link(wasm_import_module = "../src/canvas.js")]
-extern "C" {
-    fn clear_canvas();
-    fn draw_boid(x: f64, y: f64, angle: f64);
-}
-
 pub struct BoidPool {
     boids: Vec<Boid>,
 }
