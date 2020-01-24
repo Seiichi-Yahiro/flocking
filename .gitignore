@@ -3,5 +3,3 @@ node_modules
 build
 target
 pkg
-
-Cargo.lock
