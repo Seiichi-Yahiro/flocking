@@ -27,7 +27,9 @@ fn main() {
     let mut world = World::new();
     let mut physics_world = PhysicsWorld::new();
     let mut schedule = Schedule::builder()
-        .add_system(systems::create_wander_system())
+        .add_system(systems::create_update_mouse_position_system())
+        //.add_system(systems::create_wander_system())
+        .add_system(systems::create_seek_system())
         .add_system(systems::create_update_physics_world_system())
         .add_thread_local(systems::create_draw_system(gl.clone()))
         .build();
@@ -46,6 +48,9 @@ fn main() {
         .build(&mut world, &mut physics_world);
 
     world.resources.insert(physics_world);
+    world
+        .resources
+        .insert(components::MousePosition(Point2::new(0.0, 0.0)));
 
     while let Some(event) = events.next(&mut window) {
         world.resources.insert(event);

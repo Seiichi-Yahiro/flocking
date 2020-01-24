@@ -3,15 +3,13 @@ use crate::physics::PhysicsWorld;
 use itertools::Itertools;
 use legion::world::World;
 use nalgebra::{Point2, RealField, Rotation2, Vector2};
-use ncollide2d::shape::{ConvexPolygon, Polyline, ShapeHandle, Triangle};
+use ncollide2d::shape::{ConvexPolygon, ShapeHandle};
 use nphysics2d::algebra::Velocity2;
-use nphysics2d::object::{
-    BodyPartHandle, ColliderDesc, DefaultBodyHandle, DefaultColliderHandle, RigidBodyDesc,
-};
+use nphysics2d::object::{BodyPartHandle, ColliderDesc, RigidBodyDesc};
 use rand::Rng;
 
 pub fn polygon_points() -> Vec<[f64; 2]> {
-    vec![[0.0, 1.0], [-0.5, 0.0], [0.5, 0.0]]
+    vec![[0.0, 1.5], [-0.5, 0.0], [0.5, 0.0]]
         .iter()
         .map(|[x, y]| [*x * 10.0, *y * 10.0])
         .collect_vec()
@@ -46,9 +44,10 @@ impl Builder {
                 .translation(self.pos)
                 .velocity(Velocity2::new(self.vel, nalgebra::zero()))
                 .rotation(Rotation2::rotation_between(&Vector2::y_axis(), &self.vel).angle())
-                .mass(10.0)
-                .max_linear_velocity(10.0)
-                .max_angular_velocity(1.0)
+                .mass(100.0)
+                //.max_linear_velocity(15.0)
+                //.max_angular_velocity(1.0)
+                //.angular_damping(1.0)
                 .gravity_enabled(false)
                 .build();
 
@@ -77,6 +76,7 @@ impl Builder {
                 components::BodyHandle(body_handle),
                 components::ColliderHandle(collider_handle),
                 components::WanderVelocity(nalgebra::zero()),
+                components::SeekVelocity(nalgebra::zero()),
             )],
         );
     }
@@ -90,8 +90,8 @@ pub fn create_random(world: &mut World, physics_world: &mut PhysicsWorld<f64>) {
             rng.gen_range(0.0, 500.0),
         ))
         .vel(Vector2::new(
-            rng.gen_range(-5.0, 5.0),
-            rng.gen_range(-5.0, 5.0),
+            rng.gen_range(-15.0, 15.0),
+            rng.gen_range(-15.0, 15.0),
         ))
         .build(world, physics_world);
 }
