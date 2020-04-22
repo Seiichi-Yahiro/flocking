@@ -1,0 +1,94 @@
+#version 450
+
+layout(local_size_x = 32) in; // TODO set local size from rust code
+
+layout(set = 0, binding = 0) uniform ComputationConstants {
+    uint boids_count;
+    float dt;
+};
+
+struct BoidData {
+    vec4 pos;
+    vec4 vel;
+    mat4 model;
+};
+
+layout(set = 0, binding = 1) buffer SrcBoidData {
+    BoidData boids[];
+} src_boid_data;
+
+layout(set = 0, binding = 2) buffer DstBoidData {
+    BoidData boids[];
+} dst_boid_data;
+
+const float MAX_VELOCITY = 5.0;
+
+vec3 align(uint current) {
+    vec3 steering = vec3(0.0);
+
+    for (int i = 0; i < boids_count; i++) {
+        if (i == current) {continue;}
+        steering += src_boid_data.boids[i].vel.xyz;
+    }
+
+    steering /= boids_count - 1;
+    steering = normalize(steering) * MAX_VELOCITY;
+    return steering - src_boid_data.boids[current].vel.xyz;
+}
+
+vec3 cohesion(uint current) {
+    vec3 steering = vec3(0.0);
+
+    for (int i = 0; i < boids_count; i++) {
+        if (i == current) {continue;}
+        steering += src_boid_data.boids[i].pos.xyz;
+    }
+
+    steering /= boids_count - 1;
+    steering = normalize(steering - src_boid_data.boids[current].pos.xyz) * MAX_VELOCITY;
+    steering -= src_boid_data.boids[current].vel.xyz;
+    return steering;
+}
+
+vec3 separation(uint current) {
+    vec3 steering = vec3(0.0);
+
+    vec3 pos = src_boid_data.boids[current].pos.xyz;
+
+    for (int i = 0; i < boids_count; i++) {
+        if (i == current) {continue;}
+        steering += normalize(pos - src_boid_data.boids[i].pos.xyz);
+    }
+
+    steering /= boids_count - 1;
+    steering = normalize(steering) * MAX_VELOCITY;
+    steering -= src_boid_data.boids[current].vel.xyz;
+    return steering;
+}
+
+void main() {
+    uint index = gl_GlobalInvocationID.x;
+
+    if (index >= boids_count) { return; }
+
+    vec3 pos = src_boid_data.boids[index].pos.xyz;
+    vec3 vel = src_boid_data.boids[index].vel.xyz;
+
+    vec3 acc = align(index) + cohesion(index) + separation(index);
+    vec3 new_vel = vel + acc * dt;
+    vec3 new_pos = pos + new_vel * dt;
+
+    vec3 by = normalize(new_vel);
+    vec3 bz;
+    bz.x = by.y;
+    bz.y = -by.x;
+    bz.z = 0;
+    vec3 bx = cross(bz, by);
+    mat3 rotation = mat3(bx, by, bz);
+
+    mat4 new_model = mat4(vec4(rotation[0], 0.0), vec4(rotation[1], 0.0), vec4(rotation[2], 0.0), vec4(new_pos, 1.0));
+
+    dst_boid_data.boids[index].vel.xyz = new_vel;
+    dst_boid_data.boids[index].pos.xyz = new_pos;
+    dst_boid_data.boids[index].model = new_model;
+}

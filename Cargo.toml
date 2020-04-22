@@ -1,14 +1,15 @@
 [package]
-name = "wasm"
+name = "flocking"
 version = "0.1.0"
 authors = ["Julian Viechter <jviechter@gmail.com>"]
 edition = "2018"
 
-[lib]
-crate-type = ["cdylib"]
-path = "src/wasm/lib.rs"
-
 [dependencies]
-wasm-bindgen = "0.2.49"
-vector2d = "2.2.0"
-rand = {version = "0.7.0", features = ["wasm-bindgen"]}
+winit = "0.22.0"
+wgpu = "0.5.0"
+futures = "0.3.4"
+vk-shader-macros = "0.2.2"
+cgmath = { version = "0.17.0", features = ["swizzle"] }
+itertools = "0.9.0"
+rand = "0.7.3"
+wghf = { path = "../wghf" }
