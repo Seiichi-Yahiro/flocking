@@ -22,48 +22,120 @@ layout(set = 0, binding = 2) buffer DstBoidData {
 } dst_boid_data;
 
 const float MAX_VELOCITY = 5.0;
+const float MAX_FORCE = 2.0;
+
+const float BODY_RADIUS = 2.0;
+const float VISIBILITY_RADIUS = 5.0;
+const float DAMPING_DISTANCE = VISIBILITY_RADIUS * 0.75;
+
+vec3 limit(vec3 v, float limit) {
+    float l = length(v);
+
+    if (l > 0.0) {
+        return normalize(v) * min(l, limit);
+    }
+
+    return v;
+}
+
+bool is_visible(vec3 self, vec3 other) {
+    float d = distance(self, other) - 2.0 * BODY_RADIUS;
+    return d > 0.0 && d < VISIBILITY_RADIUS;
+}
+
+vec3 average(vec3 v, uint neighbors) {
+    if (neighbors > 0) {
+        return v / neighbors;
+    }
+
+    return v;
+}
 
 vec3 align(uint current) {
     vec3 steering = vec3(0.0);
+    uint neighbors = 0;
+
+    BoidData self = src_boid_data.boids[current];
 
     for (int i = 0; i < boids_count; i++) {
-        if (i == current) {continue;}
-        steering += src_boid_data.boids[i].vel.xyz;
+        BoidData other = src_boid_data.boids[i];
+
+        if (i == current || !is_visible(self.pos.xyz, other.pos.xyz)) {continue;}
+        neighbors += 1;
+
+        steering += other.vel.xyz;
     }
 
-    steering /= boids_count - 1;
-    steering = normalize(steering) * MAX_VELOCITY;
-    return steering - src_boid_data.boids[current].vel.xyz;
+    steering = average(steering, neighbors);
+    return limit(steering, MAX_FORCE);
 }
 
 vec3 cohesion(uint current) {
     vec3 steering = vec3(0.0);
+    uint neighbors = 0;
+
+    BoidData self = src_boid_data.boids[current];
 
     for (int i = 0; i < boids_count; i++) {
-        if (i == current) {continue;}
-        steering += src_boid_data.boids[i].pos.xyz;
+        BoidData other = src_boid_data.boids[i];
+
+        if (i == current || !is_visible(self.pos.xyz, other.pos.xyz)) {continue;}
+        neighbors += 1;
+
+        steering += other.pos.xyz;
     }
 
-    steering /= boids_count - 1;
-    steering = normalize(steering - src_boid_data.boids[current].pos.xyz) * MAX_VELOCITY;
-    steering -= src_boid_data.boids[current].vel.xyz;
+    steering = average(steering, neighbors);
+
+    vec3 desired = steering - self.pos.xyz;
+    float d = length(desired);
+
+    if (d > 0.0) {
+        desired = normalize(desired);
+
+        if (d < DAMPING_DISTANCE) {
+            desired *= MAX_VELOCITY * d / DAMPING_DISTANCE;
+        } else {
+            desired *= MAX_VELOCITY;
+        }
+
+        steering = desired - self.vel.xyz;
+    } else {
+        steering = vec3(0.0);
+    }
+
     return steering;
 }
 
 vec3 separation(uint current) {
     vec3 steering = vec3(0.0);
+    uint neighbors = 0;
 
-    vec3 pos = src_boid_data.boids[current].pos.xyz;
+    BoidData self = src_boid_data.boids[current];
 
     for (int i = 0; i < boids_count; i++) {
-        if (i == current) {continue;}
-        steering += normalize(pos - src_boid_data.boids[i].pos.xyz);
+        BoidData other = src_boid_data.boids[i];
+
+        if (i == current || !is_visible(self.pos.xyz, other.pos.xyz)) {continue;}
+        neighbors += 1;
+
+        steering += normalize(self.pos.xyz - other.pos.xyz) / (distance(self.pos.xyz, other.pos.xyz) - 2.0 * BODY_RADIUS);
     }
 
-    steering /= boids_count - 1;
-    steering = normalize(steering) * MAX_VELOCITY;
-    steering -= src_boid_data.boids[current].vel.xyz;
+    steering = average(steering, neighbors);
     return steering;
+}
+
+vec3 flock(uint current) {
+    return align(current) + cohesion(current) + separation(current);
+}
+
+mat3 convert_velocity_to_rotation(vec3 vel) {
+    vec3 up = vec3(0.0, 1.0, 0.0);
+    vec3 dir = normalize(vel);
+    vec3 side = normalize(cross(dir, up));
+    up = normalize(cross(side, dir));
+    return mat3(side, dir, up);
 }
 
 void main() {
@@ -71,21 +143,17 @@ void main() {
 
     if (index >= boids_count) { return; }
 
-    vec3 pos = src_boid_data.boids[index].pos.xyz;
-    vec3 vel = src_boid_data.boids[index].vel.xyz;
+    BoidData old_self = src_boid_data.boids[index];
+    vec3 pos = old_self.pos.xyz;
+    vec3 vel = old_self.vel.xyz;
+    mat4 model = old_self.model;
 
-    vec3 acc = align(index) + cohesion(index) + separation(index);
-    vec3 new_vel = vel + acc * dt;
+    vec3 acc = flock(index);
+    vec3 new_vel = limit(vel + acc * dt, MAX_VELOCITY);
     vec3 new_pos = pos + new_vel * dt;
 
-    vec3 by = normalize(new_vel);
-    vec3 bz;
-    bz.x = by.y;
-    bz.y = -by.x;
-    bz.z = 0;
-    vec3 bx = cross(bz, by);
-    mat3 rotation = mat3(bx, by, bz);
 
+    mat3 rotation = convert_velocity_to_rotation(new_vel);
     mat4 new_model = mat4(vec4(rotation[0], 0.0), vec4(rotation[1], 0.0), vec4(rotation[2], 0.0), vec4(new_pos, 1.0));
 
     dst_boid_data.boids[index].vel.xyz = new_vel;

@@ -90,9 +90,9 @@ impl WindowState for State {
         let boids = (0..MAX_BOIDS)
             .map(|_| BoidData {
                 position: [
-                    rng.gen_range(-10.0, 10.0),
-                    rng.gen_range(-10.0, 10.0),
-                    rng.gen_range(-10.0, 10.0),
+                    rng.gen_range(-20.0, 20.0),
+                    rng.gen_range(-20.0, 20.0),
+                    rng.gen_range(-20.0, 20.0),
                     0.0,
                 ],
                 velocity: [
