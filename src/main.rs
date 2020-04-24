@@ -52,19 +52,19 @@ impl WindowState for State {
         let projection = Self::calculate_projection(init_data.window.inner_size());
         let camera = Camera::new(
             [0.0, 0.0, 10.0],
-            /*CameraMode::Free {
+            CameraMode::Free {
                 look_dir: cgmath::Vector3::from([0.0, 0.0, -1.0]),
                 controls: Default::default(),
                 camera_speed: 0.005,
                 move_speed: 5.0,
-            },*/
-            CameraMode::Focused {
+            },
+            /*CameraMode::Focused {
                 look_at: cgmath::Point3::new(0.0, 0.0, 0.0),
                 controls: Default::default(),
                 speed: 0.005,
                 zoom_speed: 0.01,
                 wheel_zoom_speed: 0.01,
-            },
+            },*/
         );
 
         let material_bind_group_layout = init_data
@@ -80,7 +80,7 @@ impl WindowState for State {
             &mut encoder,
             &material_bind_group_layout,
             &mesh_bind_group_layout,
-            "cone/cone.obj",
+            "models/cone/cone.obj",
         )
         .unwrap();
 
@@ -104,6 +104,12 @@ impl WindowState for State {
                 model: cgmath::Matrix4::identity().into(),
             })
             .collect_vec();
+
+        /*let boids = vec![BoidData {
+            position: [0.0; 4],
+            velocity: [0.0, 0.0, 0.0, 1.0],
+            model: cgmath::Matrix4::identity().into(),
+        }];*/
 
         let buffers = Buffers::new(
             &init_data.device,
