@@ -56,7 +56,7 @@ impl WindowState for State {
                 look_dir: cgmath::Vector3::from([0.0, 0.0, -1.0]),
                 controls: Default::default(),
                 camera_speed: 0.005,
-                move_speed: 5.0,
+                move_speed: 10.0,
             },
             /*CameraMode::Focused {
                 look_at: cgmath::Point3::new(0.0, 0.0, 0.0),
@@ -80,7 +80,7 @@ impl WindowState for State {
             &mut encoder,
             &material_bind_group_layout,
             &mesh_bind_group_layout,
-            "models/cone/cone.obj",
+            "models/guppy/guppy.obj",
         )
         .unwrap();
 
