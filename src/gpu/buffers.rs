@@ -17,16 +17,59 @@ pub struct BoidData {
     pub model: [[f32; 4]; 4],
 }
 
+impl BoidData {
+    pub fn new(position: [f32; 4], velocity: [f32; 4]) -> Self {
+        use cgmath::SquareMatrix;
+        Self {
+            position,
+            velocity,
+            model: cgmath::Matrix4::identity().into(),
+        }
+    }
+
+    pub fn new_random(
+        pos_range: std::ops::RangeInclusive<f32>,
+        vel_range: std::ops::RangeInclusive<f32>,
+    ) -> Self {
+        use cgmath::SquareMatrix;
+        use rand::Rng;
+
+        let mut rng = rand::thread_rng();
+
+        Self {
+            position: [
+                rng.gen_range(*pos_range.start(), *pos_range.end()),
+                rng.gen_range(*pos_range.start(), *pos_range.end()),
+                rng.gen_range(*pos_range.start(), *pos_range.end()),
+                0.0,
+            ],
+            velocity: [
+                rng.gen_range(*vel_range.start(), *vel_range.end()),
+                rng.gen_range(*vel_range.start(), *vel_range.end()),
+                rng.gen_range(*vel_range.start(), *vel_range.end()),
+                1.0,
+            ],
+            model: cgmath::Matrix4::identity().into(),
+        }
+    }
+}
+
 #[buffer_data]
 pub struct ComputeData {
     pub number_of_boids: u32,
     pub dt: f32,
 }
 
+#[buffer_data]
+pub struct TimeData {
+    pub time: f32,
+}
+
 pub struct Buffers {
     pub view: Buffer<ViewData>,
     pub model_data: Vec<Buffer<BoidData>>,
     pub compute_data: Buffer<ComputeData>,
+    pub time_data: Buffer<TimeData>,
 }
 
 impl Buffers {
@@ -59,6 +102,12 @@ impl Buffers {
                 device,
                 wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
                 &[compute_data],
+                None,
+            ),
+            time_data: Buffer::new(
+                device,
+                wgpu::BufferUsage::UNIFORM | wgpu::BufferUsage::COPY_DST,
+                &[TimeData { time: 0.0 }],
                 None,
             ),
         }

@@ -1,9 +1,8 @@
 mod gpu;
 
-use crate::gpu::buffers::{BoidData, Buffers, ComputeData, ViewData};
+use crate::gpu::buffers::{BoidData, Buffers, ComputeData, TimeData, ViewData};
 use crate::gpu::GPUData;
 use itertools::Itertools;
-use rand::Rng;
 use wghf::model::{Material, Mesh, Model};
 use wghf::wghf_buffer::prelude::*;
 use wghf::wghf_camera::{Camera, CameraMode};
@@ -26,6 +25,7 @@ pub struct State {
     pub camera: Camera,
 
     pub gpu_data: GPUData,
+    pub time: f32,
 }
 
 impl State {
@@ -84,32 +84,11 @@ impl WindowState for State {
         )
         .unwrap();
 
-        let mut rng = rand::thread_rng();
-
-        use cgmath::SquareMatrix;
         let boids = (0..MAX_BOIDS)
-            .map(|_| BoidData {
-                position: [
-                    rng.gen_range(-20.0, 20.0),
-                    rng.gen_range(-20.0, 20.0),
-                    rng.gen_range(-20.0, 20.0),
-                    0.0,
-                ],
-                velocity: [
-                    rng.gen_range(-5.0, 5.0),
-                    rng.gen_range(-5.0, 5.0),
-                    rng.gen_range(-5.0, 5.0),
-                    1.0,
-                ],
-                model: cgmath::Matrix4::identity().into(),
-            })
+            .map(|_| BoidData::new_random(-20.0..=20.0, -5.0..=5.0))
             .collect_vec();
 
-        /*let boids = vec![BoidData {
-            position: [0.0; 4],
-            velocity: [0.0, 0.0, 0.0, 1.0],
-            model: cgmath::Matrix4::identity().into(),
-        }];*/
+        //let boids = vec![BoidData::new([0.0; 4], [0.0, 0.0, -0.1, 1.0])];
 
         let buffers = Buffers::new(
             &init_data.device,
@@ -138,6 +117,7 @@ impl WindowState for State {
             projection,
             camera,
             gpu_data,
+            time: 0.0,
         };
 
         (state, Some(encoder))
@@ -172,6 +152,13 @@ impl WindowState for State {
 
     fn update(&mut self, update_data: UpdateData<'_>) {
         self.camera.update(update_data.dt as f32);
+        self.time += update_data.dt as f32;
+        self.gpu_data
+            .buffers
+            .time_data
+            .write_range(&[TimeData { time: self.time }], 0..1)
+            .unwrap()
+            .submit(update_data.device, update_data.encoder);
         self.gpu_data.update(update_data.encoder);
     }
 

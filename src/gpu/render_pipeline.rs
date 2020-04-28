@@ -31,6 +31,11 @@ impl RenderPipeline {
                         readonly: true,
                     },
                 },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 2,
+                    visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                    ty: wgpu::BindingType::UniformBuffer { dynamic: false },
+                },
             ],
             label: None,
         });
@@ -51,6 +56,10 @@ impl RenderPipeline {
                         wgpu::Binding {
                             binding: 1,
                             resource: buffers.model_data[i].create_binding_resource(),
+                        },
+                        wgpu::Binding {
+                            binding: 2,
+                            resource: buffers.time_data.create_binding_resource(),
                         },
                     ],
                     label: None,
