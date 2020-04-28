@@ -13,7 +13,7 @@ use winit::event::{Event, VirtualKeyCode, WindowEvent};
 use winit::event_loop::ControlFlow;
 use winit::window::WindowBuilder;
 
-pub const MAX_BOIDS: u32 = 100;
+pub const MAX_BOIDS: u32 = 1000;
 pub const LOCAL_GROUPS_X: u32 = 32;
 
 const RESOLUTION: [u32; 2] = [800, 600];
@@ -87,8 +87,6 @@ impl WindowState for State {
         let boids = (0..MAX_BOIDS)
             .map(|_| BoidData::new_random(-20.0..=20.0, -5.0..=5.0))
             .collect_vec();
-
-        //let boids = vec![BoidData::new([0.0; 4], [0.0, 0.0, -0.1, 1.0])];
 
         let buffers = Buffers::new(
             &init_data.device,

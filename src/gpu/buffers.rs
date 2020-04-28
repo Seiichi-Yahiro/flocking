@@ -14,6 +14,7 @@ pub struct ViewData {
 pub struct BoidData {
     pub position: [f32; 4],
     pub velocity: [f32; 4],
+    pub wander: [f32; 4],
     pub model: [[f32; 4]; 4],
 }
 
@@ -23,6 +24,7 @@ impl BoidData {
         Self {
             position,
             velocity,
+            wander: [0.0; 4],
             model: cgmath::Matrix4::identity().into(),
         }
     }
@@ -49,6 +51,7 @@ impl BoidData {
                 rng.gen_range(*vel_range.start(), *vel_range.end()),
                 1.0,
             ],
+            wander: [0.0; 4],
             model: cgmath::Matrix4::identity().into(),
         }
     }

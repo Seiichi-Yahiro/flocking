@@ -20,6 +20,7 @@ layout(set = 2, binding = 0) uniform ProjectionViewData {
 struct BoidData {
     vec4 pos;
     vec4 vel;
+    vec4 wander;
     mat4 model;
 };
 
